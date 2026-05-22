@@ -8,6 +8,7 @@ import pytz
 import json
 import random
 import os
+import subprocess
 import pandas as pd
 from datetime import datetime, timedelta
 from tqdm import tqdm
@@ -22,7 +23,11 @@ from tqdm import tqdm
 
 try:
     # Declaração de variaveis
-    projetos_opusclip_db = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "database.xlsx")
+    diretorio_execucao = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    caminho_diretorio_log = os.path.join(diretorio_execucao, "log", datetime.now().strftime("%Y"), datetime.now().strftime("%B"))
+    arquivo_log = os.path.join(caminho_diretorio_log, f"log_{datetime.now().strftime("%Y-%m-%d")}.txt")
+
+    projetos_opusclip_db = os.path.join(diretorio_execucao, "data", "database.xlsx")
 
     if not os.path.exists(projetos_opusclip_db):
         print("Banco de dados não encontrado. Encerrando execução.")
@@ -93,16 +98,27 @@ try:
         return animaçãostatus
 
 
+    def log(mensagem):
+        os.makedirs(caminho_diretorio_log, exist_ok=True)
+        with open(arquivo_log, "a", encoding="utf-8") as arquivo:
+            arquivo.write(f"{datetime.now().strftime("%Y/%m/%d %H:%M:%S")}: {mensagem}\n")
+
+
+    def print_log(mensagem):
+        log(mensagem)
+        print(mensagem)
+
+
     def print_telegram(mensagem):
         while True:
             try:
                 requests.post(url_telegram + BOT_TOKEN + "/sendMessage",data={"chat_id": CHAT_ID, "text": mensagem})
                 break
             except:
-                print("Erro, mensagem para o telegram não enviada, tentando novamente...")
+                print_log("Erro, mensagem para o telegram não enviada, tentando novamente...")
                 time.sleep(10)
 
-        print(mensagem)
+        print_log(mensagem)
 
 
     def agendamento_facebook(video, titulo, descricao, data_hora): #resumable upload
@@ -137,7 +153,7 @@ try:
             except:
                 print_telegram("Algo de errado aconteceu com a requisição de inicio de sessão e upload. Tentando novamente.")
 
-        print(f"Sessão e upload iniciado")
+        print_log(f"Sessão e upload iniciado")
 
 
         # -------------------------
@@ -183,6 +199,8 @@ try:
                     pbar.update(new_start_offset - start_offset)
                     start_offset = new_start_offset
 
+                    log(f"Upload em andamento: {(start_offset / TamanhoVideo) * 100:.2f}%")
+
 
         # -------------------------
         # 3?? FINISH
@@ -204,9 +222,9 @@ try:
                 if response_finish.status_code == 200:
                     if "success" in response_finish.json():
                         if response_finish.json()["success"]:
-                            print("Sessão e upload finalizado")
+                            print_log("Sessão e upload finalizado")
                             return video_id
-                            break
+                            # break
                         else:
                             print_telegram(f"Conteudo da resposta de finalização de upload e sessão retornou False. Tentando novamente.\n\n{json.dumps(response_finish.json(), indent=4, ensure_ascii=False)}")
                     else: 
@@ -269,10 +287,42 @@ try:
                 break
             
             except Exception:
-                print("Tentando novamente.")
+                print_log("Tentando novamente.")
 
             except:
-                print("Algo de errado aconteceu com a solicitação de status. Tentando novamente.")
+                print_log("Algo de errado aconteceu com a solicitação de status. Tentando novamente.")
+
+
+    def formatar_tamanho(bytes):
+        for unidade in ["B", "KB", "MB", "GB", "TB"]:
+            if bytes < 1024:
+                return f"{bytes:.2f} {unidade}"
+            bytes /= 1024
+
+
+    def obter_duracao_video(video):
+        comando = [
+            "ffprobe",
+            "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            video
+        ]
+
+        resultado = subprocess.run(
+            comando,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+
+        segundos = float(resultado.stdout.strip())
+
+        horas = int(segundos // 3600)
+        minutos = int((segundos % 3600) // 60)
+        segundos = int(segundos % 60)
+
+        return f"{horas:02d}:{minutos:02d}:{segundos:02d}"
 
 
 
@@ -284,7 +334,7 @@ try:
 
 
     # Obtendo dados do ultimo agendamento
-    print("Obtendo dados do ultimo agendamento")
+    print_log("Obtendo dados do ultimo agendamento")
     response_ultimoagendamento = requests.get(url_facebook + PAGE_ID + "/scheduled_posts",params={"fields": "created_time", "limit": 1, "access_token": ACCESS_TOKEN},)
     if response_ultimoagendamento.status_code == 200:
         if "data" in response_ultimoagendamento.json():
@@ -350,15 +400,19 @@ try:
                         time.sleep(0.01)
                         if pd.isna(registro_videos.Facebook_ID) and pd.isna(registro_videos.Facebook_Agendamento):
                             sys.stdout.write("\n")
-                            print("Registro encontrado no banco de dados.") 
-                            print_telegram(f"Iniciando agendamento de postagem.\nNome do projeto: {registro_projetos.Nome_Projeto}\nTitulo do video: {registro_videos.Facebook_Titulo}\nHorario agendamento: {data_hora_agendamento.strftime('%d/%m/%Y %H:%M:%S')}")
+                            print_log("Registro encontrado no banco de dados.") 
+                            print_telegram(f"Iniciando agendamento de postagem")
+                            print_telegram(f"Nome do projeto: {registro_projetos.Nome_Projeto}")
+                            print_telegram(f"Titulo do video: {registro_videos.Facebook_Titulo}")
+                            print_telegram(f"Dados do video - Tamanho: {formatar_tamanho(os.path.getsize(registro_videos.Local_Video))}, Comprimento: {obter_duracao_video(registro_videos.Local_Video)}")
+                            print_telegram(f"Horario agendamento: {data_hora_agendamento.strftime('%d/%m/%Y %H:%M:%S')}")
 
 
                             #Agendamento-------------------------------------------------------------------------------------------------------
                             video_id = agendamento_facebook(registro_videos.Local_Video, registro_videos.Facebook_Titulo, registro_videos.Facebook_Descrição, data_hora_agendamento)
 
                             print_telegram("Video agendado")
-                            print(f"VIDEO_ID do agendamento: {video_id}")
+                            print_log(f"VIDEO_ID do agendamento: {video_id}")
                             print_telegram("Iniciando verificação de status")
 
 
@@ -369,6 +423,7 @@ try:
                             while status != "ready":
                                 sys.stdout.write(f"\rStatus: {status} {animacao_status()}")
                                 sys.stdout.flush()
+                                log(f"Status: {status}")
                                 status, post_id, data_hora_agendamento_facebook = status_facebook(video_id)
                                 
                             sys.stdout.write("\n")
@@ -377,7 +432,9 @@ try:
 
                             #Preenchimento_de_banco_de_dados-----------------------------------------------------------------------------------
                             print_telegram("Preenchendo banco de dados")
-                            print_telegram(f"Facebook_ID: {post_id}\nFacebook_Agendamento: {data_hora_agendamento_facebook}\nMetodo: Agendamento")
+                            print_telegram(f"Facebook_ID: {post_id}")
+                            print_telegram(f"Facebook_Agendamento: {data_hora_agendamento_facebook}")
+                            print_telegram("Metodo: Agendamento")
                             planilha_db.loc[planilha_db["ID"] == registro_videos.ID, "Facebook_ID"] = post_id
                             planilha_db.loc[planilha_db["ID"] == registro_videos.ID, "Facebook_Agendamento"] = data_hora_agendamento_facebook
                             planilha_db.loc[planilha_db["ID"] == registro_videos.ID, "Metodo"] = "Agendamento"
