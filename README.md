@@ -36,7 +36,7 @@ Foi desenvolvido para resolver um problema real de automação de conteúdo, per
 ## 🗂️ Estrutura do projeto
 
 ```
-facebook-video-scheduler-api/
+Facebook-Video-Scheduler-API/
 │
 ├── data/
 │   └── database_fake.xlsx          # Banco de dados de exemplo
@@ -114,8 +114,8 @@ Utilize o arquivo `database_fake.xlsx` como base para criar o seu.
 ### 1. Clone o repositório
 
 ```
-git clone https://github.com/lucianotargino-dev/facebook-video-scheduler-api.git
-cd facebook-video-scheduler-api/src
+git clone https://github.com/lucianotargino-dev/Facebook-Video-Scheduler-API.git
+cd Facebook-Video-Scheduler-API/src
 ```
 
 ---
