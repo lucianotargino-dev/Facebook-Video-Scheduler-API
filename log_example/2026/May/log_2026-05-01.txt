@@ -1,0 +1,30 @@
+2026/05/01 00:00:38: Obtendo dados do ultimo agendamento
+2026/05/01 00:00:46: -------------------------------------------------
+2026/05/01 00:00:49: Iniciando execução de agendamentos de videos para o Facebook
+2026/05/01 00:00:52: ####################################
+2026/05/01 00:00:56: Agendamento 1 de 1
+2026/05/01 00:01:18: Registro encontrado no banco de dados.
+2026/05/01 00:01:21: Iniciando agendamento de postagem
+2026/05/01 00:01:24: Nome do projeto: Podcast TechCast Ep. 12 - Inteligência Artificial 
+2026/05/01 00:01:26: Titulo do video: IA vai substituir programadores? 
+2026/05/01 00:01:34: Dados do video - Tamanho: 50.48 MB, Comprimento: 00:00:48
+2026/05/01 00:01:36: Horario agendamento: 05/05/2026 12:00:00
+2026/05/01 00:01:39: Sessão e upload iniciado
+2026/05/01 00:01:48: Upload em andamento: 4.95%
+2026/05/01 00:02:27: Upload em andamento: 29.70%
+2026/05/01 00:02:38: Upload em andamento: 54.45%
+2026/05/01 00:02:48: Upload em andamento: 79.19%
+2026/05/01 00:02:55: Upload em andamento: 100.00%
+2026/05/01 00:03:05: Sessão e upload finalizado
+2026/05/01 00:03:07: Video agendado
+2026/05/01 00:03:07: VIDEO_ID do agendamento: 012345678901234
+2026/05/01 00:03:09: Iniciando verificação de status
+2026/05/01 00:03:20: Status: ready
+2026/05/01 00:03:22: Preenchendo banco de dados
+2026/05/01 00:03:24: Facebook_ID: 012345678901234_012345678901234567
+2026/05/01 00:03:26: Facebook_Agendamento: 2026-05-05 12:00:00-03:00
+2026/05/01 00:03:27: Metodo: Agendamento
+2026/05/01 00:03:32: Banco de dados preenchido
+2026/05/01 00:03:34: ####################################
+2026/05/01 00:03:35: Agendamentos finalizados
+2026/05/01 00:03:37: -------------------------------------------------

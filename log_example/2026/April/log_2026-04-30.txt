@@ -1,0 +1,33 @@
+2026/04/30 00:00:47: Obtendo dados do ultimo agendamento
+2026/04/30 00:00:51: -------------------------------------------------
+2026/04/30 00:00:52: Iniciando execução de agendamentos de videos para o Facebook
+2026/04/30 00:00:54: ####################################
+2026/04/30 00:00:55: Agendamento 1 de 1
+2026/04/30 00:01:22: Registro encontrado no banco de dados.
+2026/04/30 00:01:23: Iniciando agendamento de postagem
+2026/04/30 00:01:25: Nome do projeto: Podcast TechCast Ep. 12 - Inteligência Artificial 
+2026/04/30 00:01:26: Titulo do video: ChatGPT é confiável? 
+2026/04/30 00:01:30: Dados do video - Tamanho: 72.82 MB, Comprimento: 00:01:05
+2026/04/30 00:01:31: Horario agendamento: 05/05/2026 18:00:00
+2026/04/30 00:01:34: Sessão e upload iniciado
+2026/04/30 00:01:46: Upload em andamento: 2.83%
+2026/04/30 00:02:12: Upload em andamento: 16.97%
+2026/04/30 00:02:39: Upload em andamento: 31.11%
+2026/04/30 00:03:09: Upload em andamento: 45.24%
+2026/04/30 00:03:40: Upload em andamento: 59.38%
+2026/04/30 00:04:15: Upload em andamento: 73.52%
+2026/04/30 00:04:49: Upload em andamento: 87.66%
+2026/04/30 00:05:13: Upload em andamento: 100.00%
+2026/04/30 00:05:22: Sessão e upload finalizado
+2026/04/30 00:05:23: Video agendado
+2026/04/30 00:05:23: VIDEO_ID do agendamento: 012345678901234
+2026/04/30 00:05:25: Iniciando verificação de status
+2026/04/30 00:05:38: Status: ready
+2026/04/30 00:05:40: Preenchendo banco de dados
+2026/04/30 00:05:42: Facebook_ID: 012345678901234_012345678901234567
+2026/04/30 00:05:43: Facebook_Agendamento: 2026-05-05 18:00:00-03:00
+2026/04/30 00:05:45: Metodo: Agendamento
+2026/04/30 00:05:48: Banco de dados preenchido
+2026/04/30 00:05:50: ####################################
+2026/04/30 00:05:52: Agendamentos finalizados
+2026/04/30 00:05:54: -------------------------------------------------
