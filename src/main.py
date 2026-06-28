@@ -181,7 +181,7 @@ try:
 
                     while True:
                         try:
-                            response_transfer = requests.post(url_facebook + PAGE_ID + "/videos", data=params_transfer, files=files)
+                            response_transfer = requests.post(url_facebook + PAGE_ID + "/videos", data=params_transfer, files=files, timeout=(10, 300))
 
                             if response_transfer.status_code == 200:
                                 if {"start_offset","end_offset"}.issubset(response_transfer.json()):
