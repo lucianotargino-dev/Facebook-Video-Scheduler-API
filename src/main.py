@@ -284,13 +284,14 @@ try:
                     raise Exception()
                 
                 return video_status, post_id, publish_time
-                break
             
             except Exception:
-                print_log("Tentando novamente.")
+                print_log("Erro. Tentando novamente....")
+                time.sleep(10)
 
             except:
-                print_log("Algo de errado aconteceu com a solicitação de status. Tentando novamente.")
+                print_log("Algo de errado aconteceu com a solicitação de status. Tentando novamente....")
+                time.sleep(10)
 
 
     def formatar_tamanho(bytes):
@@ -335,23 +336,35 @@ try:
 
     # Obtendo dados do ultimo agendamento
     print_log("Obtendo dados do ultimo agendamento")
-    response_ultimoagendamento = requests.get(url_facebook + PAGE_ID + "/scheduled_posts",params={"fields": "created_time", "limit": 1, "access_token": ACCESS_TOKEN},)
-    if response_ultimoagendamento.status_code == 200:
-        if "data" in response_ultimoagendamento.json():
-            if len(response_ultimoagendamento.json()["data"]) == 1:
-                if "created_time" in response_ultimoagendamento.json()["data"][0]:
-                    data_hora_inicial_agendamento = datetime.fromisoformat(response_ultimoagendamento.json()["data"][0]["created_time"]).astimezone(timezone) + timedelta(minutes=tempo_seguranca)
+    while True:
+        try:
+            response_ultimoagendamento = requests.get(url_facebook + PAGE_ID + "/scheduled_posts",params={"fields": "created_time", "limit": 1, "access_token": ACCESS_TOKEN},)
+            if response_ultimoagendamento.status_code == 200:
+                if "data" in response_ultimoagendamento.json():
+                    if len(response_ultimoagendamento.json()["data"]) == 1:
+                        if "created_time" in response_ultimoagendamento.json()["data"][0]:
+                            data_hora_inicial_agendamento = datetime.fromisoformat(response_ultimoagendamento.json()["data"][0]["created_time"]).astimezone(timezone) + timedelta(minutes=tempo_seguranca)
+                            break
+                        else:
+                            print_telegram(f"Conteudo do elemento 'data[0]' não contem o elemento 'created_time' na resposta da solicitação para obter dados do ultimo agendamento.\nEncerrando execução.\n\n{json.dumps(response_ultimoagendamento.json(), indent=4, ensure_ascii=False)}")
+                            raise SystemExit
+                    else:
+                        data_hora_inicial_agendamento = datetime.now().astimezone(timezone) + timedelta(minutes=tempo_seguranca)
+                        break
                 else:
-                    print_telegram(f"Conteudo do elemento 'data[0]' não contem o elemento 'created_time' na resposta da solicitação para obter dados do ultimo agendamento.\nEncerrando execução.\n\n{json.dumps(response_ultimoagendamento.json(), indent=4, ensure_ascii=False)}")
+                    print_telegram(f"Conteudo da resposta da solicitação para obter dados do ultimo agendamento não contem o elemento 'data'.\nEncerrando execução.\n\n{json.dumps(response_ultimoagendamento.json(), indent=4, ensure_ascii=False)}")
                     raise SystemExit
             else:
-                data_hora_inicial_agendamento = datetime.now().astimezone(timezone) + timedelta(minutes=tempo_seguranca)
-        else:
-            print_telegram(f"Conteudo da resposta da solicitação para obter dados do ultimo agendamento não contem o elemento 'data'.\nEncerrando execução.\n\n{json.dumps(response_ultimoagendamento.json(), indent=4, ensure_ascii=False)}")
-            raise SystemExit
-    else:
-        print_telegram(f"Resposta da solicitação para obter dados do ultimo agendamento não retornou 200.\nEncerrando execução.\n\n{response_ultimoagendamento}\n\n{json.dumps(response_ultimoagendamento.json(), indent=4, ensure_ascii=False)}")
-        raise SystemExit
+                print_telegram(f"Resposta da solicitação para obter dados do ultimo agendamento não retornou 200.\nEncerrando execução.\n\n{response_ultimoagendamento}\n\n{json.dumps(response_ultimoagendamento.json(), indent=4, ensure_ascii=False)}")
+                raise SystemExit
+
+        except Exception:
+            print_log("Erro. Tentando novamente...")
+            time.sleep(10)
+        
+        except:
+            print_log("Algo de errado aconteceu com a solicitação de status. Tentando novamente...")
+            time.sleep(10)
 
 
 
@@ -484,4 +497,4 @@ except FileNotFoundError:
     raise
 
 except:
-    print_telegram(f"Ocorreu um erro.\nEncerrando execução.\n\n{traceback.format_exc()}")
+    print_telegram(f"Ocorreu um erro. Encerrando execução.\n\n{traceback.format_exc()}")
