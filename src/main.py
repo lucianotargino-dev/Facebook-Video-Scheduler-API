@@ -9,6 +9,7 @@ import json
 import random
 import os
 import subprocess
+import socket
 import pandas as pd
 from datetime import datetime, timedelta
 from tqdm import tqdm
@@ -119,6 +120,13 @@ try:
                 time.sleep(10)
 
         print_log(mensagem)
+    
+
+    def formatar_tamanho(bytes):
+        for unidade in ["B", "KB", "MB", "GB", "TB"]:
+            if bytes < 1024:
+                return f"{bytes:.2f} {unidade}"
+            bytes /= 1024
 
 
     def agendamento_facebook(video, titulo, descricao, data_hora): #resumable upload
@@ -161,45 +169,47 @@ try:
         # -------------------------
         with open(video, "rb") as Arquivo:
 
-            with tqdm(total=TamanhoVideo, unit="B", unit_scale=True, desc="Upload") as pbar:
+            while start_offset < TamanhoVideo:
 
-                while start_offset < TamanhoVideo:
+                Arquivo.seek(start_offset)
+                chunk = Arquivo.read(end_offset - start_offset)
 
-                    Arquivo.seek(start_offset)
-                    chunk = Arquivo.read(end_offset - start_offset)
+                params_transfer = {
+                    "upload_phase": "transfer",
+                    "upload_session_id": upload_session_id,
+                    "start_offset": start_offset,
+                    "access_token": ACCESS_TOKEN
+                }
 
-                    params_transfer = {
-                        "upload_phase": "transfer",
-                        "upload_session_id": upload_session_id,
-                        "start_offset": start_offset,
-                        "access_token": ACCESS_TOKEN
-                    }
+                files = {
+                    "video_file_chunk": chunk
+                }
 
-                    files = {
-                        "video_file_chunk": chunk
-                    }
+                while True:
+                    try:
+                        inicio = time.monotonic()
+                        response_transfer = requests.post(url_facebook + PAGE_ID + "/videos", data=params_transfer, files=files, timeout=(1500, 4500))
+                        fim = time.monotonic()
 
-                    while True:
-                        try:
-                            response_transfer = requests.post(url_facebook + PAGE_ID + "/videos", data=params_transfer, files=files, timeout=(10, 300))
-
-                            if response_transfer.status_code == 200:
-                                if {"start_offset","end_offset"}.issubset(response_transfer.json()):
-                                    new_start_offset = int(response_transfer.json()["start_offset"])
-                                    end_offset = int(response_transfer.json()["end_offset"])
-                                    break
-                                else:
-                                    print_telegram(f"Conteudo da resposta durante upload não contem um ou varios dos elementos a seguir: start_offset, end_offset.\nTentando novamente.\n\n{json.dumps(response_transfer.json(), indent=4, ensure_ascii=False)}")
+                        if response_transfer.status_code == 200:
+                            if {"start_offset","end_offset"}.issubset(response_transfer.json()):
+                                new_start_offset = int(response_transfer.json()["start_offset"])
+                                end_offset = int(response_transfer.json()["end_offset"])
+                                break
                             else:
-                                print_telegram(f"Resposta durante upload não retornou 200.\nTentando novamente.\n\n{response_transfer}\n\n{json.dumps(response_transfer.json(), indent=4, ensure_ascii=False)}")
-                        
-                        except:
-                            print_telegram("Algo de errado aconteceu com o upload de uma das chunks. Tentando novamente.")
+                                print_telegram(f"Conteudo da resposta durante upload não contem um ou varios dos elementos a seguir: start_offset, end_offset.\nTentando novamente.\n\n{json.dumps(response_transfer.json(), indent=4, ensure_ascii=False)}")
+                        else:
+                            print_telegram(f"Resposta durante upload não retornou 200.\nTentando novamente.\n\n{response_transfer}\n\n{json.dumps(response_transfer.json(), indent=4, ensure_ascii=False)}")
+                    
+                    except Exception as e:
+                        print_telegram(f"Erro: {e!r}. Tentando novamente.")
+                        fim = time.monotonic()
+                        print_telegram(f"Chunk: {start_offset} -> {end_offset} - Tamanho: {formatar_tamanho(end_offset - start_offset)} - Chunk falhou após {fim - inicio:.1f} s")                        
 
-                    pbar.update(new_start_offset - start_offset)
-                    start_offset = new_start_offset
+                tamanho_chunk = new_start_offset - start_offset
+                start_offset = new_start_offset
 
-                    log(f"Upload em andamento: {(start_offset / TamanhoVideo) * 100:.2f}%")
+                print_telegram(f"++ Upload em andamento: {(start_offset / TamanhoVideo) * 100:.2f}% - Tamanho da chunk: {formatar_tamanho(tamanho_chunk)} - Chunk enviada em {fim - inicio:.1f} s - Velocidade: {formatar_tamanho(tamanho_chunk/(fim-inicio))}/s")
 
 
         # -------------------------
@@ -293,12 +303,6 @@ try:
                 print_log("Algo de errado aconteceu com a solicitação de status. Tentando novamente....")
                 time.sleep(10)
 
-
-    def formatar_tamanho(bytes):
-        for unidade in ["B", "KB", "MB", "GB", "TB"]:
-            if bytes < 1024:
-                return f"{bytes:.2f} {unidade}"
-            bytes /= 1024
 
 
     def obter_duracao_video(video):
