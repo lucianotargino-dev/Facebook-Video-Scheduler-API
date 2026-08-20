@@ -22,6 +22,7 @@ from tqdm import tqdm
 
 
 
+
 try:
     # Declaração de variaveis
     diretorio_execucao = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -304,7 +305,6 @@ try:
                 time.sleep(10)
 
 
-
     def obter_duracao_video(video):
         comando = [
             "ffprobe",
@@ -339,7 +339,8 @@ try:
 
 
     # Obtendo dados do ultimo agendamento
-    print_log("Obtendo dados do ultimo agendamento")
+    print_telegram("↓" * 45)
+    print_telegram("Obtendo dados do ultimo agendamento")
     while True:
         try:
             response_ultimoagendamento = requests.get(url_facebook + PAGE_ID + "/scheduled_posts",params={"fields": "created_time", "limit": 1, "access_token": ACCESS_TOKEN},)
@@ -348,12 +349,14 @@ try:
                     if len(response_ultimoagendamento.json()["data"]) == 1:
                         if "created_time" in response_ultimoagendamento.json()["data"][0]:
                             data_hora_inicial_agendamento = datetime.fromisoformat(response_ultimoagendamento.json()["data"][0]["created_time"]).astimezone(timezone) + timedelta(minutes=tempo_seguranca)
+                            print_telegram(f"Ultimo agendamento encontrado em: {(data_hora_inicial_agendamento - timedelta(minutes=tempo_seguranca)).strftime('%d/%m/%Y %H:%M:%S')}")
                             break
                         else:
                             print_telegram(f"Conteudo do elemento 'data[0]' não contem o elemento 'created_time' na resposta da solicitação para obter dados do ultimo agendamento.\nEncerrando execução.\n\n{json.dumps(response_ultimoagendamento.json(), indent=4, ensure_ascii=False)}")
                             raise SystemExit
                     else:
                         data_hora_inicial_agendamento = datetime.now().astimezone(timezone) + timedelta(minutes=tempo_seguranca)
+                        print_telegram(f"Nenhum agendamento encontrado. Iniciando agendamento a partir de: {data_hora_inicial_agendamento.strftime('%d/%m/%Y %H:%M:%S')}")
                         break
                 else:
                     print_telegram(f"Conteudo da resposta da solicitação para obter dados do ultimo agendamento não contem o elemento 'data'.\nEncerrando execução.\n\n{json.dumps(response_ultimoagendamento.json(), indent=4, ensure_ascii=False)}")
@@ -380,7 +383,7 @@ try:
 
 
     #Agendador de postagem de videos no Facebook por API
-    print_telegram("-------------------------------------------------")
+    
     print_telegram("Iniciando execução de agendamentos de videos para o Facebook")
     data_agendamento = data_hora_inicial_agendamento.replace(hour=0, minute=0, second=0, microsecond=0)
     contador_agendamento = 0
@@ -492,7 +495,7 @@ try:
         print_telegram("+++ No momento não existem mais horários de agendamentos disponiveis +++")
 
     print_telegram("Agendamentos finalizados")
-    print_telegram("-------------------------------------------------")
+    print_telegram("↑" * 45)
 
 except SystemExit:
     raise
