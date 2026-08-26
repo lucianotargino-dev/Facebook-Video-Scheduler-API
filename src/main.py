@@ -9,10 +9,11 @@ import json
 import random
 import os
 import subprocess
-import socket
+# import socket
 import pandas as pd
 from datetime import datetime, timedelta
-from tqdm import tqdm
+# from tqdm import tqdm
+
 
 
 
@@ -349,6 +350,12 @@ try:
                     if len(response_ultimoagendamento.json()["data"]) == 1:
                         if "created_time" in response_ultimoagendamento.json()["data"][0]:
                             data_hora_inicial_agendamento = datetime.fromisoformat(response_ultimoagendamento.json()["data"][0]["created_time"]).astimezone(timezone) + timedelta(minutes=tempo_seguranca)
+
+                            if datetime.now().astimezone(timezone) > data_hora_inicial_agendamento:
+                                data_hora_inicial_agendamento = datetime.now().astimezone(timezone) + timedelta(minutes=tempo_seguranca)
+                                print_telegram(f"Nenhum agendamento encontrado. Iniciando agendamento a partir de: {data_hora_inicial_agendamento.strftime('%d/%m/%Y %H:%M:%S')}")
+                                break
+
                             print_telegram(f"Ultimo agendamento encontrado em: {(data_hora_inicial_agendamento - timedelta(minutes=tempo_seguranca)).strftime('%d/%m/%Y %H:%M:%S')}")
                             break
                         else:
@@ -424,7 +431,7 @@ try:
                             print_telegram(f"Iniciando agendamento de postagem")
                             print_telegram(f"Nome do projeto: {registro_projetos.Nome_Projeto}")
                             print_telegram(f"Titulo do video: {registro_videos.Facebook_Titulo}")
-                            print_telegram(f"Dados do video - Tamanho: {formatar_tamanho(os.path.getsize(registro_videos.Local_Video))}, Comprimento: {obter_duracao_video(registro_videos.Local_Video)}")
+                            print_telegram(f"Dados do video - Tamanho: {formatar_tamanho(os.path.getsize(str(registro_videos.Local_Video)))}, Comprimento: {obter_duracao_video(registro_videos.Local_Video)}")
                             print_telegram(f"Horario agendamento: {data_hora_agendamento.strftime('%d/%m/%Y %H:%M:%S')}")
 
 
