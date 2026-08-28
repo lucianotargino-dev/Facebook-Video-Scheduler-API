@@ -352,8 +352,9 @@ try:
                             data_hora_inicial_agendamento = datetime.fromisoformat(response_ultimoagendamento.json()["data"][0]["created_time"]).astimezone(timezone) + timedelta(minutes=tempo_seguranca)
 
                             if datetime.now().astimezone(timezone) > data_hora_inicial_agendamento:
+                                print_telegram(f"Um agendamento perdido não postado encontrado para {(data_hora_inicial_agendamento - timedelta(minutes=tempo_seguranca)).strftime('%d/%m/%Y %H:%M:%S')}. Favor verificar.")
                                 data_hora_inicial_agendamento = datetime.now().astimezone(timezone) + timedelta(minutes=tempo_seguranca)
-                                print_telegram(f"Nenhum agendamento encontrado. Iniciando agendamento a partir de: {data_hora_inicial_agendamento.strftime('%d/%m/%Y %H:%M:%S')}")
+                                print_telegram(f"Nenhum agendamento encontrado para o futuro. Iniciando agendamento a partir de: {data_hora_inicial_agendamento.strftime('%d/%m/%Y %H:%M:%S')}")
                                 break
 
                             print_telegram(f"Ultimo agendamento encontrado em: {(data_hora_inicial_agendamento - timedelta(minutes=tempo_seguranca)).strftime('%d/%m/%Y %H:%M:%S')}")
